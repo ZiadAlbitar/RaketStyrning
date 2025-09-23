@@ -12,8 +12,10 @@ from scipy.integrate import solve_ivp
 
 
 h = 0.1
-t_span = (0,15)
-tt = np.arange(0, 15, h)
+t0 = 0
+t1 = 30
+t_span = (t0, t1)
+tt = np.arange(t0, t1, h)
 v0 = np.array([0,0])
 c = 0.05 # kg/m
 k_m = 700 # m/s
@@ -38,7 +40,7 @@ def m_prim(t):
     
 # Det vi kommer styra med
 def angle(t):
-    return np.pi / 2
+    return -np.pi / 2
      
 
 # Funktioner för hastighetsvektorn
@@ -55,11 +57,7 @@ def u(t):
 
 # Alla externa krafter som verkar på raketen
 def F_vector(t, v):
-    # v1, v2 = v * np.absolute(v)
-    # test = m(t)*g - c * np.absolute(v) * v
-    # return np.array([test[0], test[1]])
-    return m(t)*g - c *np.multiply(np.absolute(v), v)
-    #return m(t) * g - (c * np.absolute() * v)
+    return m(t) * g - c * np.linalg.norm(v) * v
 # f(t, v) = (F + m′(t) ̄u(t))/m(t)
 
 
@@ -67,20 +65,30 @@ def F_vector(t, v):
 # v(0) = 0
 def ode_rhs(t, v):
     #return (m(t) ̄g − c|| ̄v(t)|| ̄v(t) + m′(t) ̄u(t))/m(t)
-    F1, F2 = F_vector(t,v)
+    F1, F2 = F_vector(t, v)
+    print("F1 = " + str(F1) + ", F2 = " + str(F2))
 
     u1, u2 = u(t)
- 
     return np.array([((F1 + m_prim(t)) * u1)/ m(t), (F2 + m_prim(t) * u2) / m(t)])
     #return (F_vector(t) + m_prim(t) * u(t)) / m(t)
 
 
 sol = solve_ivp(ode_rhs, t_span, v0, t_eval = tt)
 
-plt.plot(sol.t, sol.y[0], label='x')
-plt.plot(sol.t, sol.y[1], label='y')
+y_pos = np.zeros(int(t1 / h))
+x_pos = np.zeros(int(t1 / h))
+for i in range(len(tt) - 1):
+    x_pos[i + 1] = x_pos[i] + sol.y[0][i] * 0.1
+    y_pos[i + 1] = y_pos[i] + sol.y[1][i] * 0.1
+
+
+plt.plot(sol.t, sol.y[0], label='v_x')
+plt.plot(sol.t, sol.y[1], label='v_y')
+plt.plot(sol.t, y_pos, label='y')
+plt.plot(sol.t, x_pos, label='x')
 plt.title('Uppgift 2')
 plt.xlabel('tid, t')
 plt.ylabel('v')
 plt.legend()
+plt.grid()
 plt.show()
