@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
 from scipy.integrate import solve_ivp
+
 
 # m(t) ̄a(t) =  ̄F + m′(t) ̄u(t)
 # ̄a(t) =  ̄(F + m′(t) ̄u(t))/m(t)
@@ -9,7 +11,7 @@ from scipy.integrate import solve_ivp
 # ̄v'(t) =  (m(t) ̄g − c|| ̄v(t)|| ̄v(t) + m′(t) ̄u(t))/m(t)
 # v(0) = 0
 
-h = 0.01
+h = 0.1
 t0 = 0
 t1 = 15
 t_span = (t0, t1)
@@ -22,7 +24,7 @@ k_m = 700 # m/s
 goal_cords = np.array([80, 60]) # mål koordinator
 t = 0
 t_max = 10
-g = np.array([0, -9.82]) # Vektor gravitation
+gravity = np.array([0, -9.82]) # Vektor gravitation
 
 # massfunktion
 def m(t):
@@ -45,22 +47,23 @@ def angle(t, pos):
         return -np.arctan2(dy, dx)
     else:
         return -np.pi / 2  
-        
+     
+
 # Funktioner för hastighetsvektorn
-def u_x(t, ang):
+def u_x(t,ang):
     return k_m * np.cos(ang)
 
-def u_y(t, ang):
+def u_y(t,ang):
     return k_m * np.sin(ang)
 
 #hastighetsvektor för bränslet
-def u(t, pos):
+def u(t,pos):
     ang = angle(t, pos)
     return np.array([u_x(t, ang), u_y(t, ang)])
 
 # Alla externa krafter som verkar på raketen
 def F_vector(t, v):
-    return m(t) * g - c * np.linalg.norm(v) * v
+    return m(t) * gravity - c * np.linalg.norm(v) * v
 # f(t, v) = (F + m′(t) ̄u(t))/m(t)
 
 # ̄v'(t) =  (F + m′(t) * u(t))/m(t)
@@ -73,33 +76,26 @@ def ode_rhs(t, v):
     a = (F_vector(t, v_tot) + m_prim(t) * u(t,pos))/m(t)
     return np.array([vx, vy, a[0], a[1]])
 
-sol = solve_ivp(ode_rhs, t_span, v0, t_eval = tt)
 
-#y_pos = np.zeros(int(t1 / h))
-#x_pos = np.zeros(int(t1 / h))
-#for i in range(len(tt) - 1):
-#    x_pos[i + 1] = x_pos[i] + sol.y[2][i] * 0.1
-#    y_pos[i + 1] = y_pos[i] + sol.y[3][i] * 0.1
+def g(v_next, t_n, v_n, h):
+    t_next = t + h
+    k1 = ode_rhs(t_n, v_n)
+    k2 = ode_rhs(t_n + h/2, v_n + h/2 * k1)
+    k3 = ode_rhs(t_n + h/2, v_n + h/2 * k2)
+    k4 = ode_rhs(t_next, v_n + h * k3)
+    return v_next - v_n - h/6 * (k1 + 2*k2 + 2*k3 + k4)
+    
+y = np.zeros((len(tt), len(v0)))
+y[0, :] = v0
 
-plt.figure(figsize=(10,5))
+for i in range(len(tt)-1):
+    y[i + 1] = fsolve(g, y[i], args=(tt[i], y[i], h))
 
-plt.subplot(1,2,1)
-plt.plot(sol.y[0], sol.y[1], label='Trajectory')
-plt.scatter(goal_cords[0],goal_cords[1], color='red', label='Goal')
-plt.xlabel('x')
+plt.plot(y[: , 0], y[: , 1], label="Trajectory")
+plt.scatter(goal_cords[0], goal_cords[1], color='red', label='Goal')
+plt.xlabel("x")
 plt.ylabel('y')
 plt.title('Raket')
 plt.legend()
 plt.grid()
-
-plt.subplot(1,2,2)
-plt.plot(sol.t, sol.y[2], label='v_x')
-plt.plot(sol.t, sol.y[3], label='v_y')
-plt.xlabel('Tid')
-plt.ylabel('Hastighet')
-plt.title('Raket hastigheter')
-plt.legend()
-plt.grid()
-
-plt.tight_layout()
 plt.show()
