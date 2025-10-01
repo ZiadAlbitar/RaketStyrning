@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from RaketStyrning.improved_viktor import ode_rhs, goal_cords
+from improved_viktor import ode_rhs, goal_cords
 
 h = 0.01
 t0 = 0
