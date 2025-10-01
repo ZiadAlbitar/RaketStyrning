@@ -2,7 +2,7 @@ import numpy as np
 
 c = 0.05 # kg/m
 k_m = 700 # m/s
-goal_cords = np.array([60, 80])
+goal_cords = np.array([80, 60])
 g = np.array([0, -9.82]) # Vektor gravitation
 
 # massfunktion
@@ -19,7 +19,7 @@ def m_prim(t):
         return 0
     
 # Det vi kommer styra med
-def angle(t, pos):
+def angle(pos):
     if pos[1] >= 20:
         dx = pos[0] - goal_cords[0]
         dy = goal_cords[1] - pos[1]
@@ -48,5 +48,5 @@ def ode_rhs(t, v):
     pos = np.array([x, y])
     v_tot = np.array([vx, vy])
     a = (F_vector(t, v_tot) + m_prim(t) * u(t,pos))/m(t)
-    # Returnera en array med hastigheten och accelration i x- och y-led
+    # Returnera en array med hastigheten och accelaration i x- och y-led
     return np.array([vx, vy, a[0], a[1]])

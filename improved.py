@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+from common import u_x, u_y, m_prim, F_vector, m, goal_cords
+
+h = 0.01
+t0 = 0
+t1 = 5
+t_span = (t0, t1)
+tt = np.arange(t0, t1, h)
+
+# x,y,vx,vy
+v0 = np.array([0,0,0,0])
+    
+# Det vi kommer styra med
+def angle(pos, ang):
+    if pos[1] >= 20:
+        return ang
+    else:
+        return -np.pi / 2  
+
+def u(t, pos, ang):
+    ang = angle(pos, ang)
+    return np.array([u_x(t, ang), u_y(t, ang)])
+
+
+def ode_rhs(t, v, ang):
+    x, y, vx, vy = v
+    pos = np.array([x, y])
+    distance = np.sqrt((goal_cords[0] - pos[0])**2 + (goal_cords[1] - pos[1])**2)
+    global closest_dist
+    global best_angle
+    if (distance < closest_dist):
+        closest_dist = distance
+        best_angle = ang
+    v_tot = np.array([vx, vy])
+    a = (F_vector(t, v_tot) + m_prim(t) * u(t, pos, ang))/m(t)
+    return np.array([vx, vy, a[0], a[1]])
+
+angle0 = -np.pi / 2
+angle1 = - np.pi * (3 / 2)
+best_angle = -np.pi / 2
+closest_dist = np.sqrt((goal_cords[0]**2) + goal_cords[1]**2)
+for ang in np.linspace(angle0, angle1, 3600):
+    solve_ivp(ode_rhs, t_span, v0, args=(ang,), t_eval = tt)
+
+
+sol = solve_ivp(ode_rhs, t_span, v0, args=(best_angle,), t_eval = tt)
+
+plt.figure(figsize=(10,5))
+
+plt.subplot(1,2,1)
+plt.plot(sol.y[0], sol.y[1], label='Trajectory')
+plt.scatter(goal_cords[0],goal_cords[1], color='red', label='Goal')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Angel= ' + str(best_angle))
+plt.legend()
+plt.grid()
+
+plt.subplot(1,2,2)
+plt.plot(sol.t, sol.y[2], label='v_x')
+plt.plot(sol.t, sol.y[3], label='v_y')
+plt.xlabel('Tid')
+plt.ylabel('Hastighet')
+plt.title('Raket hastigheter')
+plt.legend()
+plt.grid()
+
+plt.tight_layout()
+plt.show()
