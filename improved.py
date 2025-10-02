@@ -2,10 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from common import u_x, u_y, m_prim, F_vector, m, goal_cords
+import time
 
+start_time = time.time()
 h = 0.01
 t0 = 0
-t1 = 5
+t1 = 10
 t_span = (t0, t1)
 tt = np.arange(t0, t1, h)
 
@@ -38,17 +40,18 @@ def ode_rhs(t, v, ang):
     return np.array([vx, vy, a[0], a[1]])
 
 angle0 = -np.pi / 2
-angle1 = - np.pi * (3 / 2)
+angle1 = - np.pi
 best_angle = -np.pi / 2
 closest_dist = np.sqrt((goal_cords[0]**2) + goal_cords[1]**2)
-for ang in np.linspace(angle0, angle1, 3600):
+for ang in np.linspace(angle0, angle1, 1800):
     solve_ivp(ode_rhs, t_span, v0, args=(ang,), t_eval = tt)
 
 
 sol = solve_ivp(ode_rhs, t_span, v0, args=(best_angle,), t_eval = tt)
+run_time = str(time.time() - start_time)
+print("Run time: " + run_time)
 
 plt.figure(figsize=(10,5))
-
 plt.subplot(1,2,1)
 plt.plot(sol.y[0], sol.y[1], label='Trajectory')
 plt.scatter(goal_cords[0],goal_cords[1], color='red', label='Goal')

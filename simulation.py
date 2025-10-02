@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from common import ode_rhs, goal_cords
+import time
 
+start_time = time.time()
 h = 0.01
 t0 = 0
 t1 = 15
@@ -12,9 +14,10 @@ tt = np.arange(t0, t1, h)
 v0 = np.array([0,0,0,0])
 
 sol = solve_ivp(ode_rhs, t_span, v0, t_eval = tt)
+run_time = str(time.time() - start_time)
+print("Run time: " + run_time)
 
 plt.figure(figsize=(10,5))
-
 plt.subplot(1,2,1)
 plt.plot(sol.y[0], sol.y[1], label='Trajectory')
 plt.scatter(goal_cords[0],goal_cords[1], color='red', label='Goal')

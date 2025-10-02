@@ -36,7 +36,7 @@ def u_y(t, ang):
 
 # Hastighetsvektor för bränslet
 def u(t, pos):
-    ang = angle(t, pos)
+    ang = angle(pos)
     return np.array([u_x(t, ang), u_y(t, ang)])
 
 # Alla externa krafter som verkar på raketen
