@@ -26,6 +26,7 @@ def angle(pos):
         return -np.arctan2(dy, dx)
     else:
         return -np.pi / 2  
+
         
 # Funktioner för hastighetsvektorn
 def u_x(t, ang):
