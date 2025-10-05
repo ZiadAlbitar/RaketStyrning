@@ -2,7 +2,7 @@ import numpy as np
 
 c = 0.05 # kg/m
 k_m = 700 # m/s
-goal_cords = np.array([60, 80])
+goal_cords = np.array([80, 60])
 g = np.array([0, -9.82]) # Vektor gravitation
 
 # massfunktion
