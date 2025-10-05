@@ -4,6 +4,7 @@ from scipy.integrate import solve_ivp
 from common import u_x, u_y, m_prim, F_vector, m, goal_cords
 import time
 
+# Mät körtiden
 start_time = time.time()
 h = 0.01
 t0 = 0
@@ -11,7 +12,7 @@ t1 = 10
 t_span = (t0, t1)
 tt = np.arange(t0, t1, h)
 
-# x,y,vx,vy
+# x, y, vx, vy
 v0 = np.array([0,0,0,0])
     
 # Det vi kommer styra med
@@ -21,9 +22,11 @@ def angle(pos, ang):
     else:
         return -np.pi / 2  
 
-def u(t, pos, ang):
+# Den funktionen behövde omdefineras för att använda överskridna angle(),
+# finns snyggare sätt att hantera detta men blev enklast så.
+def u(pos, ang):
     ang = angle(pos, ang)
-    return np.array([u_x(t, ang), u_y(t, ang)])
+    return np.array([u_x(ang), u_y(ang)])
 
 
 def ode_rhs(t, v, ang):
@@ -36,16 +39,16 @@ def ode_rhs(t, v, ang):
         closest_dist = distance
         best_angle = ang
     v_tot = np.array([vx, vy])
-    a = (F_vector(t, v_tot) + m_prim(t) * u(t, pos, ang))/m(t)
+    a = (F_vector(t, v_tot) + m_prim(t) * u(pos, ang))/m(t)
     return np.array([vx, vy, a[0], a[1]])
 
+# Intiala värden
 angle0 = -np.pi / 2
 angle1 = - np.pi
 best_angle = -np.pi / 2
 closest_dist = np.sqrt((goal_cords[0]**2) + goal_cords[1]**2)
 for ang in np.linspace(angle0, angle1, 1800):
     solve_ivp(ode_rhs, t_span, v0, args=(ang,), t_eval = tt)
-
 
 sol = solve_ivp(ode_rhs, t_span, v0, args=(best_angle,), t_eval = tt)
 run_time = str(time.time() - start_time)

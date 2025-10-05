@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from common import goal_cords, F_vector
+from common import goal_cords, F_vector, m, m_prim, u_x, u_y
 import time
 
+# Mät körtiden
 start_time = time.time()
 c = 0.05 # kg/m
 k_m = 700 # m/s
-goal_cords = np.array([60, 80])
 g = np.array([0, -9.82]) # Vektor gravitation
 
 # x,y,vx,vy
@@ -19,20 +19,6 @@ t1 = 10
 t_span = (t0, t1)
 tt = np.arange(t0, t1, h)
 
-
-# massfunktion
-def m(t):
-    if t < 10:
-        return 8 - 0.4 * t
-    else:
-        return 4
-    
-def m_prim(t):
-    if t < 10:
-        return -0.4
-    else:
-        return 0
-    
 #konstanter för alla delar i PID
 Kp = 1.0
 Ki = 0.1
@@ -46,7 +32,7 @@ def angle(pos, v):
     global prev_error, integral_error
 
     dt = 0.01
-    # Direction toward goal
+    #Riktning mot målet
     dx = goal_cords[0] - pos[0]
     dy = goal_cords[1] - pos[1]
     theta = np.arctan2(dy, dx)
@@ -70,21 +56,14 @@ def angle(pos, v):
 
     out = P_out + I_out + D_out
     if pos[1] >= 20:
-
         return np.arctan2(out[1], out[0])+np.pi
 
     else:
         return -np.pi / 2  
 
         
-# Funktioner för hastighetsvektorn
-def u_x(ang):
-    return k_m * np.cos(ang)
-
-def u_y(ang):
-    return k_m * np.sin(ang)
-
-# Hastighetsvektor för bränslet
+# Denna funktion behövde omdefineras för att använda överskridna angle(),
+# finns snyggare sätt att hantera detta men blev enklast så.
 def u(pos, v):
     ang = angle(pos, v)
     return np.array([u_x(ang), u_y(ang)])
